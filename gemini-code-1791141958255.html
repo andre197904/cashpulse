@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashPulse - Instant Rewards & PayPal Payouts</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(17, 24, 39, 0.8);
+            --accent: #00ff88;
+            --accent-glow: rgba(0, 255, 136, 0.4);
+            --text-main: #ffffff;
+            --text-secondary: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Falling money background animation */
+        .money-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .bill {
+            position: absolute;
+            top: -50px;
+            color: rgba(0, 255, 136, 0.12);
+            font-size: 24px;
+            font-weight: bold;
+            user-select: none;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-50px) rotate(0deg);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% {
+                transform: translateY(105vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--text-main);
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .lang-switcher {
+            display: flex;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 5px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn.active {
+            background: var(--accent);
+            color: #0b0f19;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        /* Main Content Container */
+        main {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 20px 60px 20px;
+            flex-grow: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .hero-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        h1 span {
+            color: var(--accent);
+            text-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        p.subtitle {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            margin-bottom: 35px;
+            line-height: 1.6;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #00ff88, #00b359);
+            color: #0b0f19;
+            font-size: 1.2rem;
+            font-weight: 700;
+            padding: 16px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            box-shadow: 0 0 25px var(--accent-glow);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 35px var(--accent);
+        }
+
+        /* Steps Section (Clickable) */
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .step-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 25px 20px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .step-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.15);
+        }
+
+        .step-number {
+            display: inline-block;
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--accent);
+            font-weight: 800;
+            font-size: 0.9rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+        }
+
+        .step-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .step-card p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Modal Popup Window */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 15, 25, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: #111827;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-content h3 {
+            color: var(--accent);
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .modal-content p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .modal-btn {
+            background: var(--accent);
+            color: #0b0f19;
+            font-weight: 700;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.2s;
+            box-shadow: 0 0 15px var(--accent-glow);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .modal-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+
+        /* Live Payouts Ticker */
+        .ticker-wrap {
+            position: relative;
+            width: 100vw;
+            left: calc(-50vw + 50%);
+            overflow: hidden;
+            background: rgba(11, 15, 25, 0.9);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 12px 0;
+            z-index: 10;
+            margin-top: 20px;
+        }
+
+        .ticker {
+            display: flex;
+            width: max-content;
+            animation: tickerScroll 900s linear infinite;
+        }
+
+        .ticker:hover {
+            animation-play-state: paused;
+        }
+
+        .ticker-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 8px 16px;
+            border-radius: 30px;
+            margin-right: 15px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .ticker-item .name {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .ticker-item .amount {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .ticker-item .method {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        @keyframes tickerScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: var(--bg-color);
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.1rem; }
+            header { padding: 15px 20px; }
+            .hero-card { padding: 30px 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Falling money effect container -->
+    <div class="money-rain" id="moneyRain"></div>
+
+    <header>
+        <div class="logo">Cash<span>Pulse</span></div>
+        <div class="lang-switcher">
+            <button class="lang-btn active" onclick="setLanguage('en')">EN</button>
+            <button class="lang-btn" onclick="setLanguage('de')">DE</button>
+            <button class="lang-btn" onclick="setLanguage('es')">ES</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="hero-card">
+            <h1 id="mainTitle">Get Rewarded For Your Opinion & Time</h1>
+            <p class="subtitle" id="mainDesc">Join thousands of users worldwide. Complete simple tasks, take surveys, and get instant payouts directly to your PayPal account.</p>
+            
+            <!-- ТВОЯ ПАРТНЕРСКАЯ ССЫЛКА -->
+            <a href="https://www.prizerebel.com/index.php?r=15035352" class="cta-button" id="ctaBtn" target="_blank" rel="noopener noreferrer">Get Started Now</a>
+        </div>
+
+        <!-- Кликабельные блоки шагов -->
+        <div class="steps-container">
+            <div class="step-card" onclick="openModal(1)">
+                <span class="step-number" id="step1Num">STEP 1</span>
+                <h3 id="step1Title">Free Sign Up</h3>
+                <p id="step1Desc">Create your account in 30 seconds. No hidden fees or commitments required.</p>
+            </div>
+            <div class="step-card" onclick="openModal(2)">
+                <span class="step-number" id="step2Num">STEP 2</span>
+                <h3 id="step2Title">Complete Tasks</h3>
+                <p id="step2Desc">Take short surveys, watch videos, or try apps from top global brands.</p>
+            </div>
+            <div class="step-card" onclick="openModal(3)">
+                <span class="step-number" id="step3Num">STEP 3</span>
+                <h3 id="step3Title">Get Paid Instantly</h3>
+                <p id="step3Desc">Withdraw your earnings via PayPal or gift cards with lightning speed.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальное окно (Табличка с подробной информацией) -->
+    <div class="modal-overlay" id="infoModal" onclick="closeModalOutside(event)">
+        <div class="modal-content">
+            <h3 id="modalTitle">Details</h3>
+            <p id="modalText">Description...</p>
+            <a href="https://www.prizerebel.com/index.php?r=15035352" class="modal-btn" id="modalActionBtn" target="_blank" rel="noopener noreferrer">Get Started Now</a>
+        </div>
+    </div>
+
+    <!-- Running Ticker with 200 Realistic Payouts -->
+    <div class="ticker-wrap">
+        <div class="ticker" id="payoutTicker"></div>
+    </div>
+
+    <footer>
+        <p id="footerText">&copy; 2026 CashPulse. All rights reserved. Independent affiliate partner.</p>
+    </footer>
+
+    <script>
+        // Multi-language dictionary
+        const translations = {
+            en: {
+                title: "Get Rewarded For Your Opinion & Time",
+                desc: "Join thousands of users worldwide. Complete simple tasks, take surveys, and get instant payouts directly to your PayPal account.",
+                cta: "Get Started Now",
+                s1num: "STEP 1", s1t: "Free Sign Up", s1d: "Create your account in 30 seconds. No hidden fees or commitments required.",
+                s2num: "STEP 2", s2t: "Complete Tasks", s2d: "Take short surveys, watch videos, or try apps from top global brands.",
+                s3num: "STEP 3", s3t: "Get Paid Instantly", s3d: "Withdraw your earnings via PayPal or gift cards with lightning speed.",
+                mod1t: "Free Registration", mod1d: "Fast and secure registration takes less than a minute. Enter your basic details and get immediate access to top daily offers.",
+                mod2t: "Tasks & Surveys", mod2d: "Choose from hundreds of daily polls, partner offers, and tasks tailored specifically to your profile to maximize earnings.",
+                mod3t: "Instant Cashout", mod3d: "Cash out starting from low thresholds. Funds arrive straight to your PayPal wallet or gift card balances instantly.",
+                modBtn: "Get Started Now",
+                footer: "&copy; 2026 CashPulse. All rights reserved. Independent affiliate partner."
+            },
+            de: {
+                title: "Werden Sie für Ihre Meinung und Zeit belohnt",
+                desc: "Schließen Sie sich Tausenden von Nutzern weltweit an. Erledigen Sie einfache Aufgaben, nehmen Sie an Umfragen teil und erhalten Sie sofortige Auszahlungen direkt auf Ihr PayPal-Konto.",
+                cta: "Jetzt Starten",
+                s1num: "SCHRITT 1", s1t: "Kostenlose Registrierung", s1d: "Erstellen Sie Ihr Konto in 30 Sekunden. Keine versteckten Gebühren.",
+                s2num: "SCHRITT 2", s2t: "Aufgaben Erledigen", s2d: "Nehmen Sie an kurzen Umfragen teil oder testen Sie Apps globaler Marken.",
+                s3num: "SCHRITT 3", s3t: "Sofort Auszahlen", s3d: "Heben Sie Ihr Guthaben blitzschnell über PayPal oder Gutscheine ab.",
+                mod1t: "Kostenlose Registrierung", mod1d: "Die Registrierung ist sicher und dauert unter einer Minute. Erhalten Sie sofortigen Zugriff auf Top-Angebote.",
+                mod2t: "Aufgaben & Umfragen", mod2d: "Wählen Sie aus hunderten täglichen Umfragen und Angeboten, die perfekt auf Ihr Profil abgestimmt sind.",
+                mod3t: "Sofortige Auszahlung", mod3d: "Auszahlung ab geringen Beträgen. Das Geld landet blitzschnell auf Ihrem PayPal-Konto.",
+                modBtn: "Get Started Now",
+                footer: "&copy; 2026 CashPulse. Alle Rechte vorbehalten. Unabhängiger Partner."
+            },
+            es: {
+                title: "Obtén Recompensas por tu Opinión y Tiempo",
+                desc: "Únete a miles de usuarios en todo el mundo. Completa tareas sencillas, responde encuestas y recibe pagos instantáneos directamente en tu cuenta de PayPal.",
+                cta: "Empezar Ahora",
+                s1num: "PASO 1", s1t: "Registro Gratuito", s1d: "Crea tu cuenta en 30 segundos. Sin tarifas ocultas ni compromisos.",
+                s2num: "PASO 2", s2t: "Completa Tareas", s2d: "Responde encuestas cortas, mira videos o prueba aplicaciones.",
+                s3num: "PASO 3", s3t: "Pago Instantáneo", s3d: "Retira tus ganancias mediante PayPal o tarjetas de regalo con gran rapidez.",
+                mod1t: "Registro Gratuito", mod1d: "El registro es rápido y seguro. Completa tus datos básicos y obtén acceso inmediato a las mejores ofertas.",
+                mod2t: "Tareas y Encuestas", mod2d: "Elige entre cientos de encuestas diarias y ofertas diseñadas para maximizar tus ganancias.",
+                mod3t: "Retiro Instantáneo", mod3d: "Retira desde montos bajos. Los fondos llegan directamente a tu cuenta de PayPal o tarjetas de regalo.",
+                modBtn: "Get Started Now",
+                footer: "&copy; 2026 CashPulse. Todos los derechos reservados. Socio afiliado independiente."
+            }
+        };
+
+        let currentLang = 'en';
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('mainTitle').innerHTML = translations[lang].title.replace('Opinion', '<span>Opinion</span>');
+            document.getElementById('mainDesc').textContent = translations[lang].desc;
+            document.getElementById('ctaBtn').textContent = translations[lang].cta;
+            
+            document.getElementById('step1Num').textContent = translations[lang].s1num;
+            document.getElementById('step1Title').textContent = translations[lang].s1t;
+            document.getElementById('step1Desc').textContent = translations[lang].s1d;
+            
+            document.getElementById('step2Num').textContent = translations[lang].s2num;
+            document.getElementById('step2Title').textContent = translations[lang].s2t;
+            document.getElementById('step2Desc').textContent = translations[lang].s2d;
+            
+            document.getElementById('step3Num').textContent = translations[lang].s3num;
+            document.getElementById('step3Title').textContent = translations[lang].s3t;
+            document.getElementById('step3Desc').textContent = translations[lang].s3d;
+
+            document.getElementById('modalActionBtn').textContent = translations[lang].modBtn;
+            document.getElementById('footerText').innerHTML = translations[lang].footer;
+        }
+
+        // Modal Logic
+        function openModal(stepNumber) {
+            const modal = document.getElementById('infoModal');
+            const titleEl = document.getElementById('modalTitle');
+            const textEl = document.getElementById('modalText');
+            
+            const t = translations[currentLang];
+            if (stepNumber === 1) {
+                titleEl.textContent = t.mod1t;
+                textEl.textContent = t.mod1d;
+            } else if (stepNumber === 2) {
+                titleEl.textContent = t.mod2t;
+                textEl.textContent = t.mod2d;
+            } else if (stepNumber === 3) {
+                titleEl.textContent = t.mod3t;
+                textEl.textContent = t.mod3d;
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeModalOutside(event) {
+            if (event.target.id === 'infoModal') {
+                document.getElementById('infoModal').classList.remove('active');
+            }
+        }
+
+        // Generate falling money symbols ($)
+        const moneyRainContainer = document.getElementById('moneyRain');
+        for (let i = 0; i < 25; i++) {
+            const bill = document.createElement('div');
+            bill.classList.add('bill');
+            bill.textContent = '$';
+            bill.style.left = `${Math.random() * 100}%`;
+            bill.style.animationDuration = `${Math.random() * 4 + 3}s`;
+            bill.style.animationDelay = `${Math.random() * 5}s`;
+            bill.style.fontSize = `${Math.floor(Math.random() * 14) + 18}px`;
+            moneyRainContainer.appendChild(bill);
+        }
+
+        // Generate 200 random payouts with realistic amounts ($5.00 - $69.99)
+        const firstNames = ["James", "Michael", "David", "John", "Robert", "William", "Joseph", "Thomas", "Daniel", "Matthew", "Sarah", "Jessica", "Emily", "Anna", "Lisa", "Maria", "Elena", "Alexander", "Maxim", "Lucas", "Sophie", "Emma", "Liam", "Noah", "Oliver", "Elijah", "Mateo", "Leo", "Benjamin", "Charlotte", "Amelia", "Mia", "Harper", "Evelyn", "Abigail", "Elizabeth", "Sofia", "Avery", "Ella", "Scarlett", "Grace", "Chloe", "Victoria", "Riley", "Aria", "Lily", "Aubrey", "Zoey", "Hannah", "Lillian", "Addison", "Audrey", "Ellie", "Stella", "Natalie", "Zoe", "Leah", "Hazel", "Violet", "Aurora", "Savannah", "Brooklyn", "Bella", "Claire", "Skylar", "Lucy", "Paisley", "Everly", "Caroline", "Nova", "Genesis", "Emilia", "Kennedy", "Samantha", "Maya", "Willow", "Kinsley", "Naomi", "Aaliyah", "Ariana", "Allison", "Gabriella", "Alice", "Madelyn", "Cora", "Ruby", "Eva", "Serenity", "Autumn", "Adalynn", "Hailey", "Gianna", "Valentina", "Isla", "Eliana", "Quinn", "Nevaeh", "Ivy", "Sadie", "Piper", "Lydia", "Alexa", "Josephine", "Emersyn", "Delilah", "Arya", "Madeline", "Freya", "Julieta", "Kylie", "Brooke", "Reagan", "Ines", "Camila", "Lucia", "Martina", "Paula", "Daniela", "Valeria", "Alba", "Julia", "Carla", "Noa", "Claudia", "Sara", "Carmen", "Marina", "Ana", "Raquel", "Beatriz", "Diana", "Laura", "Marta", "Nuria", "Sonia", "Tania", "Vanesa", "Yolanda", "Lukas", "Leon", "Maximilian", "Paul", "Elias", "Jonas", "Felix", "Ben", "Emil", "Finn", "Mats", "Jan", "Tim", "Tom", "Julian", "Philipp", "Niklas", "Tobias", "Florian", "Stefan", "Markus", "Christian", "Andreas", "Matthias", "Christoph", "Martin", "Sebastian", "Dominik", "Patrick", "Marcel", "Kevin", "Dennis", "Sascha", "Timo", "Fabian", "Robin", "Jannik", "Nico", "Lars", "Sven", "Björn", "Thorsten", "Frank", "Uwe", "Jürgen", "Bernd", "Manfred", "Peter", "Klaus", "Dieter", "Werner", "Heinz", "Gerhard", "Günter", "Hans", "Wolfgang", "Horst", "Karl", "Helmut", "Walter", "Jörg", "Rainer"];
+        const countries = ["🇺🇸", "🇩🇪", "🇪🇸", "🇬🇧", "🇫🇷", "🇨🇦", "🇦🇺", "🇮🇹", "🇳🇱", "🇵🇱", "🇦🇹", "🇨🇭"];
+        const methods = ["PayPal", "PayPal", "PayPal", "Amazon GC", "Gift Card"];
+
+        const tickerContainer = document.getElementById('payoutTicker');
+        let tickerHtml = '';
+
+        for (let i = 0; i < 200; i++) {
+            const name = firstNames[Math.floor(Math.random() * firstNames.length)];
+            const flag = countries[Math.floor(Math.random() * countries.length)];
+            const amount = (Math.random() * 64.99 + 5.00).toFixed(2);
+            const method = methods[Math.floor(Math.random() * methods.length)];
+
+            tickerHtml += `
+                <div class="ticker-item">
+                    <span>${flag}</span>
+                    <span class="name">${name}</span> withdrew 
+                    <span class="amount">$${amount}</span> via 
+                    <span class="method">${method}</span>
+                </div>
+            `;
+        }
+        
+        tickerContainer.innerHTML = tickerHtml + tickerHtml;
+    </script>
+</body>
+</html>
